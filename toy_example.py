@@ -62,7 +62,7 @@ def build_rating_matrix(user_movie_rating_triplets):
     Parameters
     ----------
     user_movie_rating_triplets: array [n_triplets, 3]
-        an array of triplets: the user id, the movie id, and the corresponding
+        an array of trpilets: the user id, the movie id, and the corresponding
         rating.
         if `u, m, r = user_movie_rating_triplets[i]` then `R[u, m] = r`
 
