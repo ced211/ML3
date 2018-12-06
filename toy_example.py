@@ -10,6 +10,7 @@ from contextlib import contextmanager
 import pandas as pd
 import numpy as np
 from scipy import sparse
+from scipy.sparse import find
 from sklearn.tree import DecisionTreeRegressor
 
 
@@ -32,7 +33,6 @@ def measure_time(label):
     print('Duration of [{}]: {}'.format(label,
                                         datetime.timedelta(seconds=end-start)))
 
-
 def load_from_csv(path, delimiter=','):
     """
     Load csv file and return a NumPy array of its data
@@ -50,7 +50,6 @@ def load_from_csv(path, delimiter=','):
         The NumPy array of the data contained in the file
     """
     return pd.read_csv(path, delimiter=delimiter).values.squeeze()
-
 
 def build_rating_matrix(user_movie_rating_triplets):
     """
@@ -76,7 +75,6 @@ def build_rating_matrix(user_movie_rating_triplets):
     training_ratings = user_movie_rating_triplets[:, 2]
 
     return sparse.coo_matrix((training_ratings, (rows, cols))).tocsr()
-
 
 def create_learning_matrices(rating_matrix, user_movie_pairs):
     """
@@ -118,6 +116,52 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     X = sparse.hstack((user_features, movie_features))
     return X.tocsr()
 
+def create_learning_matrices2(rating_matrix,user_movie_pairs):
+    """create the learning matrice [sn_sample,10] from the rating_matrix, and the user movie pair.
+        the feature vector is composed with the total number of rank1 given by the user, total of rank2 given by the user, ...
+        the total of rank 1 received by the movie, the total of rank 2 received by the movie, ..."""
+    with measure_time('Building learning matrix'):
+        #create intermediate matrix
+        users_rank = np.zeros((rating_matrix.shape[0],5))
+        print(rating_matrix.shape[0])
+        for userID in range(rating_matrix.shape[0]):
+            (dont_care1,dont_care2,user_rank) = sparse.find(rating_matrix[userID,:])
+            if userID == 1:
+                print(user_rank.shape)
+            for rank in user_rank:
+                users_rank[userID,rank-1] += 1
+        print(users_rank)
+        print(rating_matrix.shape[1])
+
+        movies_rank = np.zeros((rating_matrix.shape[1],5))
+        for movieID in range(rating_matrix.shape[1]):
+            (dont_care1,dont_care2,movie_rank) = sparse.find(rating_matrix[:,movieID].transpose())
+            if movieID == 2:
+                print(movie_rank.shape)
+            for rank in movie_rank:
+                movies_rank[movieID,rank-1] += 1
+        print(movies_rank)
+        #create feature
+        user_features = users_rank[user_movie_pairs[:,0]]
+        print(user_features.shape)
+        movie_features = movies_rank[user_movie_pairs[:,1]]
+        print(movie_features.shape)
+        X = np.concatenate((user_features,movie_features),axis=1)
+        print(X.shape)
+        return X
+
+        # learning_matrix = np.zeros((user_movie_pairs.shape[0],10))
+        # i = 0
+        # for (userID,movieID) in user_movie_pairs:
+        #     (dont_care1,dont_care2,user_rank) = sparse.find(rating_matrix[userID,:])
+        #     (dont_care1,dont_care2,movie_rank) = sparse.find(rating_matrix[:,movieID])
+        #     for rank in user_rank:
+        #         learning_matrix[i,rank-1] += 1
+        #     for rank in movie_rank:
+        #         learning_matrix[i,rank+4]  += 1
+        #     i += 1
+        # print(learning_matrix)
+        # return learning_matrix
 
 def make_submission(y_predict, user_movie_ids, file_name='submission',
                     date=True):
@@ -178,7 +222,7 @@ if __name__ == '__main__':
 
     # Build the learning matrix
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
-    X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
+    X_ls = create_learning_matrices2(rating_matrix, training_user_movie_pairs)
 
     # Build the model
     y_ls = training_labels
@@ -194,7 +238,7 @@ if __name__ == '__main__':
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
     # Build the prediction matrix
-    X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
+    X_ts = create_learning_matrices2(rating_matrix, test_user_movie_pairs)
 
     # Predict
     y_pred = model.predict(X_ts)
