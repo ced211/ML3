@@ -123,15 +123,14 @@ def create_learning_matrices2(rating_matrix,user_movie_pairs):
     with measure_time('Building learning matrix'):
         #create intermediate matrix
         users_rank = np.zeros((rating_matrix.shape[0],5))
-        print(rating_matrix.shape[0])
+        #print(rating_matrix)
         for userID in range(rating_matrix.shape[0]):
             (dont_care1,dont_care2,user_rank) = sparse.find(rating_matrix[userID,:])
-            if userID == 1:
-                print(user_rank.shape)
             for rank in user_rank:
+                #print(users_rank)
                 users_rank[userID,rank-1] += 1
-        print(users_rank)
-        print(rating_matrix.shape[1])
+        #print(users_rank)
+        #print(rating_matrix.shape[1])
 
         movies_rank = np.zeros((rating_matrix.shape[1],5))
         for movieID in range(rating_matrix.shape[1]):
@@ -140,29 +139,14 @@ def create_learning_matrices2(rating_matrix,user_movie_pairs):
                 print(movie_rank.shape)
             for rank in movie_rank:
                 movies_rank[movieID,rank-1] += 1
-        print(movies_rank)
         #create feature
         user_features = users_rank[user_movie_pairs[:,0]]
-        print(user_features.shape)
+        #print(user_features.shape)
         movie_features = movies_rank[user_movie_pairs[:,1]]
-        print(movie_features.shape)
+        #print(movie_features.shape)
         X = np.concatenate((user_features,movie_features),axis=1)
-        print(X.shape)
+        #print(X.shape)
         return X
-
-        # learning_matrix = np.zeros((user_movie_pairs.shape[0],10))
-        # i = 0
-        # for (userID,movieID) in user_movie_pairs:
-        #     (dont_care1,dont_care2,user_rank) = sparse.find(rating_matrix[userID,:])
-        #     (dont_care1,dont_care2,movie_rank) = sparse.find(rating_matrix[:,movieID])
-        #     for rank in user_rank:
-        #         learning_matrix[i,rank-1] += 1
-        #     for rank in movie_rank:
-        #         learning_matrix[i,rank+4]  += 1
-        #     i += 1
-        # print(learning_matrix)
-        # return learning_matrix
-
 def make_submission(y_predict, user_movie_ids, file_name='submission',
                     date=True):
     """
