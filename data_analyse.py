@@ -38,8 +38,6 @@ if __name__ == '__main__':
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
     y_pred = predict(test_user_movie_pairs,rating_matrix)
-    print(min(y_pred))
-    print(max(y_pred))
     # Making the submission file
     fname = make_submission(y_pred, test_user_movie_pairs, 'average')
     print('Submission file "{}" successfully written'.format(fname))

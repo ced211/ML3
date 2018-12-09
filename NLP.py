@@ -45,7 +45,7 @@ if __name__ == '__main__':
     X_vs = scaler.transform(X_vs)
     start = time.time()
     score = []
-    parameters = [(2,2)]
+    parameters = [(100,50,50)]
     for parameter in parameters:
         model = MLPRegressor(hidden_layer_sizes=parameter,random_state = 20)
         with measure_time('Training'):
