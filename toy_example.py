@@ -49,7 +49,7 @@ def load_from_csv(path, delimiter=','):
     D: array
         The NumPy array of the data contained in the file
     """
-    return pd.read_csv(path, delimiter=delimiter).values.squeeze()
+    return pd.read_csv(path, delimiter=delimiter, encoding="latin_1").values.squeeze()
 
 def build_rating_matrix(user_movie_rating_triplets):
     """
@@ -144,9 +144,27 @@ def create_learning_matrices2(rating_matrix,user_movie_pairs):
         #print(user_features.shape)
         movie_features = movies_rank[user_movie_pairs[:,1]]
         #print(movie_features.shape)
-        X = np.concatenate((user_features,movie_features),axis=1)
+        X = np.concatenate((user_features,movie_features), axis=1)
         #print(X.shape)
         return X
+
+def create_learning_matrices3(User_movie_pairs):
+    ret = list()
+    prefix = 'data/'
+    user = load_from_csv(os.path.join(prefix, 'data_user.csv'))
+    movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))
+
+    for (x, y) in User_movie_pairs:
+        tmp = np.append(np.delete(user[x-1], [0, 3, 4]), np.delete(movie[y-1], [0, 1, 2, 3, 4])) # remove colums of specified indexes and append both ressult in tmp
+
+        for i in range(len(tmp)):
+            if isinstance(tmp[i], str):
+                tmp[i] = hash(tmp[i])
+
+        ret.append(tmp)
+
+    return np.asarray(ret)
+
 def make_submission(y_predict, user_movie_ids, file_name='submission',
                     date=True):
     """
