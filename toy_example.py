@@ -154,8 +154,49 @@ def create_learning_matrices3(User_movie_pairs):
     user = load_from_csv(os.path.join(prefix, 'data_user.csv'))
     movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))
 
+    # Headers of both cvs file => Should do a global variable but need this file to be instanciable
+    userHeader = pd.read_csv(os.path.join(prefix, 'data_user.csv'), nrows=1).columns
+    movieHeader = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), nrows=1).columns
+    u = dict()
+    m = dict()
+
+    k = 0
+    for i in userHeader:
+        u[i] = k
+        k += 1
+    k = 0
+    for i in movieHeader:
+        m[i] = k
+        k += 1
+
+    # lists of features to delete represented by their indexes
+    us = list()
+    ms = list()
+
+    us.append(u["user_id"])
+    ms.append(m["movie_id"])
+    ms.append(m["movie_title"])
+    ms.append(m["video_release_date"])
+    ms.append(m["IMDb_URL"])
+    ms.append(m["unknown"])
+    ms.append(m["Fantasy"])
+    ms.append(m["Film-Noir"])
+
+    us.append(u["gender"])
+    us.append(u["occupation"])
+    us.append(u["zip_code"])
+
     for (x, y) in User_movie_pairs:
-        tmp = np.append(np.delete(user[x-1], [0, 3, 4]), np.delete(movie[y-1], [0, 1, 2, 3, 4])) # remove colums of specified indexes and append both ressult in tmp
+
+        if isinstance(movie[y-1][2], str):  # Some date are ints
+            movie[y-1][2] = int(movie[y-1][2].split("-")[-1])  # Extract year release as int
+
+        #if isinstance(user[x-1][4], str):
+         #   user[x - 1][4] = int(user[x - 1][4][:2])  # Hash 2 first letter of zip code
+        #else:
+         #   user[x-1][4] = int(user[x-1][4])//1000  # Extract the two first digits of the zip code
+
+        tmp = np.append(np.delete(user[x-1], us), np.delete(movie[y-1], ms)) # remove colums of specified indexes and append both ressult in tmp
 
         for i in range(len(tmp)):
             if isinstance(tmp[i], str):
@@ -163,7 +204,9 @@ def create_learning_matrices3(User_movie_pairs):
 
         ret.append(tmp)
 
-    return np.asarray(ret)
+    ret = np.asarray(ret)
+
+    return ret
 
 def make_submission(y_predict, user_movie_ids, file_name='submission',
                     date=True):

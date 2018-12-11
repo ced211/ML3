@@ -5,9 +5,8 @@ import os
 import time
 from sklearn.model_selection import train_test_split
 
-import pandas as pd
 import numpy as np
-from toy_example import measure_time, load_from_csv, build_rating_matrix, create_learning_matrices2, make_submission
+from toy_example import measure_time, load_from_csv, build_rating_matrix, create_learning_matrices2, make_submission, create_learning_matrices3
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 
@@ -25,13 +24,13 @@ if __name__ == '__main__':
 
     # Build the learning matrix
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
-    X_ls = create_learning_matrices2(rating_matrix, training_user_movie_pairs)
+    X_ls = create_learning_matrices3(training_user_movie_pairs)
     # Build the model
     y_ls = training_labels
     #creation of the learning and validation set.
     X_ls2 , X_vs , y_ls2 , y_vs = train_test_split(X_ls, y_ls,train_size=.8,random_state=20)
     start = time.time()
-    model = RandomForestRegressor(n_estimators=50, max_depth=None, max_features="log2")
+    model = RandomForestRegressor(n_estimators=100, max_depth=None, max_features="auto")
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls2, y_ls2)
@@ -47,7 +46,7 @@ if __name__ == '__main__':
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
     # Build the prediction matrix
-    X_ts = create_learning_matrices2(rating_matrix, test_user_movie_pairs)
+    X_ts = create_learning_matrices3(test_user_movie_pairs)
 
     # Predict
     y_pred = model.predict(X_ts)
