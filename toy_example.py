@@ -176,25 +176,28 @@ def create_learning_matrices3(User_movie_pairs):
     us.append(u["user_id"])
     ms.append(m["movie_id"])
     ms.append(m["movie_title"])
+
+    #ms.append(m["release_date"])
+
     ms.append(m["video_release_date"])
     ms.append(m["IMDb_URL"])
-    ms.append(m["unknown"])
-    ms.append(m["Fantasy"])
-    ms.append(m["Film-Noir"])
+    #ms.append(m["unknown"])
+    #ms.append(m["Fantasy"])
+    #ms.append(m["Film-Noir"])
 
-    us.append(u["gender"])
-    us.append(u["occupation"])
-    us.append(u["zip_code"])
+    #us.append(u["gender"])
+    #us.append(u["occupation"])
+    #us.append(u["zip_code"])
 
     for (x, y) in User_movie_pairs:
+
+        if movie[y-1][1] == "unknown":
+            movie[y - 1][2] = 0
 
         if isinstance(movie[y-1][2], str):  # Some date are ints
             movie[y-1][2] = int(movie[y-1][2].split("-")[-1])  # Extract year release as int
 
-        #if isinstance(user[x-1][4], str):
-         #   user[x - 1][4] = int(user[x - 1][4][:2])  # Hash 2 first letter of zip code
-        #else:
-         #   user[x-1][4] = int(user[x-1][4])//1000  # Extract the two first digits of the zip code
+        user[x - 1][4] = user[x - 1][4][:2]  # extract 2 first letter of zip code
 
         tmp = np.append(np.delete(user[x-1], us), np.delete(movie[y-1], ms)) # remove colums of specified indexes and append both ressult in tmp
 
