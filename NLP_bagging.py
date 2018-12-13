@@ -57,6 +57,7 @@ if __name__ == '__main__':
             X_ls2 = X_untouch
             X_ls2 = v_noise(X_ls2)
             scaler.fit(X_ls2)  
+	    X_ls2 = scalar.transform(X_ls2)
             model.fit(X_ls2,y_ls2)
             y_pred2 = y_pred2 + model.predict(X_vs)
             print(model.predict(X_vs))
