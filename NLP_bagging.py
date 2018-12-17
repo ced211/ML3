@@ -16,7 +16,6 @@ def y_check(y):
     for i in range(len(y)):
         #y[i] = round(y[i])
         if y[i] > 5:
-            print("y>5")
             y[i] = 5
         if y[i] < 0:
             y[i] = 0
@@ -38,42 +37,43 @@ if __name__ == '__main__':
     # Build the learning matrix
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
     X = create_learning_matrices2(rating_matrix, training_user_movie_pairs)
+
     # Build the model
     y = training_labels
-	#creation of the learning and validation set.
     X_ls2 , X_vs , y_ls2 , y_vs = train_test_split(X, y,train_size=.8,random_state=20)
+    #creation of the learning and validation set.
     X_untouch = X_ls2.copy()
     scaler = StandardScaler()
     start = time.time()
-    score = []
-    parameters = [40]
-    model = MLPRegressor(hidden_layer_sizes=(100,100,100),random_state = 20)
-    X_ls2 = v_noise(X_ls2)
-    model.fit(X_ls2,y_ls2)
-   
-    y_pred2 = model.predict(X_vs)
-    for parameter in parameters:
-        for i in range(parameter):
-            X_ls2 = X_untouch
+    models = []
+    n_estimator = 50
+    y_pred = np.zeros((n_estimator,y_vs.shape[0]))
+    with measure_time("Bagging training"):
+        for i in range(n_estimator):
+            #training
+            model = MLPRegressor(hidden_layer_sizes=(100,50,50),random_state = i)
             X_ls2 = v_noise(X_ls2)
             scaler.fit(X_ls2)  
-	    X_ls2 = scalar.transform(X_ls2)
+            X_ls2=scaler.transform(X_ls2)
             model.fit(X_ls2,y_ls2)
-            y_pred2 = y_pred2 + model.predict(X_vs)
-            print(model.predict(X_vs))
-        y_pred2 = y_pred2/(parameter+1)        
-        print(y_pred2)
-        score.append(mean_squared_error(y_vs, y_pred2))
-         
-    best = np.argmin(score)
-    print(score)
-    print(best)
-
-    # # ------------------------------ Prediction ------------------------------ #
-    # # Load test data
+            models.append(model)
+            X_ls2 = X_untouch
+    i=0
+    for model in models:
+        #predicting
+        y_pred[i,:] = model.predict(X_vs)
+        i += 1 
+    print(y_pred)
+    print(y_pred.shape)
+    y_pred = np.mean(y_pred,axis=0)
+    print(y_pred)
+    print(mean_squared_error(y_vs, y_pred))
+        
+    # # # ------------------------------ Prediction ------------------------------ #
+    # # # Load test data
     # test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
-    # # Build the prediction matrix
+    # # # Build the prediction matrix
     # X_ts = create_learning_matrices2(rating_matrix, test_user_movie_pairs)
     # X_ts = scaler.transform(X_ts)
     # # Predict
@@ -84,5 +84,5 @@ if __name__ == '__main__':
     # y_pred = y_check(y_pred)
     # print(max(y_pred))
     # # Making the submission file
-    # fname = make_submission(y_pred, test_user_movie_pairs, 'NLP' + str(parameters[best]))
+    # fname = make_submission(y_pred, test_user_movie_pairs, 'NLP_bagging' )
     # print('Submission file "{}" successfully written'.format(fname))
