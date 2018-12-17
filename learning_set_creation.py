@@ -113,6 +113,9 @@ def create_learning_matrices3(User_movie_pairs):
     return X
 
 def create_movie(movie):
+    # return a vector output where output[i] correspond to the category of the movie i.
+    # Two movie belong to the same movie_category if they has the same category. 
+    # A movie can only belong to one category. If it has several, the category which has the higher number of movie is selected. 
     movie = movie[:,5:]
     total = np.sum(movie,axis=0)
     permutation = np.flip(np.argsort(total),axis=0)
@@ -126,7 +129,9 @@ def create_movie(movie):
     return output
 
 def create_user(user):
-    #catgorie depend on occupation and gender and age
+    #categorie depend on occupation and sexe and age.
+    #return a vector output where output[i] correspond to the user_category of the user i.
+    #category are integer from 0 to n, where n is the number of different category.
     user = user[:,(1,2,3)]
     categorieID = 0
     categorie = {}
@@ -149,7 +154,7 @@ def create_user(user):
 def create_learning_matrices4(movie,user,rating_matrix,user_movie_pair):
     movie = create_movie(movie)
     user = create_user(user)
-    M = np.zeros((max(user)+1,19,5))
+    M = np.zeros((max(user)+1,max(movie)+1,5))
     feature = np.zeros((user_movie_pair.shape[0],5))
     for u,m in user_movie_pair:
         if rating_matrix[u,m] != 0:
