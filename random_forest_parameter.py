@@ -5,7 +5,8 @@ import os
 import time
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV 
-from toy_example import measure_time, load_from_csv, build_rating_matrix, create_learning_matrices4, make_submission
+from toy_example import measure_time, load_from_csv, build_rating_matrix, make_submission
+from learning_set_creation import create_learning_matrices4
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
@@ -20,9 +21,6 @@ if __name__ == '__main__':
     training_user_movie_pairs = load_from_csv(os.path.join(prefix,
                                                            'data_train.csv'))
     training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
-
-    users = load_from_csv(os.path.join(prefix, 'data_user.csv'))
-    movies = load_from_csv(os.path.join(prefix, 'data_movie.csv'))
 
     user_movie_rating_triplets = np.hstack((training_user_movie_pairs,
                                             training_labels.reshape((-1, 1))))
