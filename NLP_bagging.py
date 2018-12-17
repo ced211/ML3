@@ -6,7 +6,8 @@ import time
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler  
 from sklearn.neural_network import MLPRegressor
-from toy_example import measure_time, load_from_csv, build_rating_matrix, create_learning_matrices2, make_submission
+from toy_example import measure_time, load_from_csv, build_rating_matrix, make_submission
+from learning_set_creation import create_learning_matrices2
 import pandas as pd
 import numpy as np
 import random
