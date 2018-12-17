@@ -6,7 +6,8 @@ import time
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler  
 from sklearn.neural_network import MLPRegressor
-from toy_example import measure_time, load_from_csv, build_rating_matrix, create_learning_matrices4,create_learning_matrices3, make_submission
+from toy_example import measure_time, load_from_csv, build_rating_matrix, make_submission
+from learning_set_creation import create_learning_matrices4
 import pandas as pd
 import numpy as np
 from sklearn.metrics import mean_squared_error
@@ -80,3 +81,4 @@ if __name__ == '__main__':
     # Making the submission file
     fname = make_submission(y_pred, test_user_movie_pairs, 'NLP' + "age_sexe_metier")
     print('Submission file "{}" successfully written'.format(fname))
+
