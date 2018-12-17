@@ -171,7 +171,7 @@ def create_user(user):
         i += 1
     return output
 
-def create_learning_matrices4(movie,user,rating_matrix,user_movie_pair):
+def create_learning_matrices4(movie, user, rating_matrix, user_movie_pair):
     movie = create_movie(movie)
     user = create_user(user)
     M = np.zeros((max(user)+1, 19, 5))

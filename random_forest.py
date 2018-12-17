@@ -5,9 +5,8 @@ import os
 import time
 from sklearn.model_selection import train_test_split
 
-import pandas as pd
 import numpy as np
-from toy_example import measure_time, load_from_csv,create_learning_matrices, make_submission,build_rating_matrix
+from toy_example import measure_time, load_from_csv, create_learning_matrices, make_submission, build_rating_matrix
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
 
@@ -31,9 +30,9 @@ if __name__ == '__main__':
     # Build the model
     y_ls = training_labels
     #creation of the learning and validation set.
-    X_ls2 , X_vs , y_ls2 , y_vs = train_test_split(X_ls, y_ls,train_size=.8,random_state=20)
+    X_ls2, X_vs, y_ls2, y_vs = train_test_split(X_ls, y_ls, train_size=.8, random_state=20)
     start = time.time()
-    model = RandomForestRegressor(n_estimators=50, max_depth=None,max_features="log2",random_state=20) 
+    model = RandomForestRegressor(n_estimators=50, max_depth=None, max_features="log2", random_state=20)
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls2, y_ls2)

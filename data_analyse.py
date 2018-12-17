@@ -1,14 +1,10 @@
 # ! /usr/bin/env python
 # -*- coding: utf-8 -*-
 import os
-import time
-from sklearn.model_selection import train_test_split
-
-import pandas as pd
 import numpy as np
-from toy_example import measure_time, load_from_csv, build_rating_matrix, create_learning_matrices2, make_submission
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error
+from toy_example import measure_time, load_from_csv, build_rating_matrix, make_submission
+from learning_set_creation import create_learning_matrices2
+
 
 def predict(user_movie_pair,rating_matrix):
     """prediction is simply the average of the rank given by the user to the movies 
@@ -20,6 +16,7 @@ def predict(user_movie_pair,rating_matrix):
         learning_matrix[:,i+4] *= (i+1)
     total = np.sum(learning_matrix,axis=1)
     return total/nb_rank
+
 
 if __name__ == '__main__':
     prefix = 'data/'

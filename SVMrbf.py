@@ -10,7 +10,6 @@ from contextlib import contextmanager
 import pandas as pd
 import numpy as np
 from scipy import sparse
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.svm import SVR
 
 @contextmanager
@@ -164,7 +163,7 @@ def make_submission(y_predict, user_movie_ids, file_name='submission',
     return file_name
 
 
-def asses_model(prediction,true_label):
+def asses_model(prediction, true_label):
     """ Asses a model based on the learning set with the Least means square error measure.
 Input X : array of size N of (rate)
       Y : array of size N of (rate)
@@ -181,7 +180,6 @@ if __name__ == '__main__':
     training_user_movie_pairs = load_from_csv(os.path.join(prefix,
                                                            'data_train.csv'))
     training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
-
 
     user_movie_rating_triplets = np.hstack((training_user_movie_pairs,
                                             training_labels.reshape((-1, 1))))
