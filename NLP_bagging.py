@@ -56,7 +56,8 @@ if __name__ == '__main__':
             scaler.fit(X_ls2)  
             X_ls2=scaler.transform(X_ls2)
             model.fit(X_ls2,y_ls2)
-            X_t= scaler.transform(X_vs,copy=True)
+            models.append((model,scaler))
+            X_t = scaler.transform(X_vs,copy=True)
             y_pred[i,:] = model.predict(X_t)  
             print(model.predict(X_t))          
             X_ls2 = X_untouch.copy()
@@ -66,20 +67,23 @@ if __name__ == '__main__':
     #print("means: "+str(means))
     print(mean_squared_error(y_vs,means))
         
-    # # # ------------------------------ Prediction ------------------------------ #
-    # # # Load test data
-    # test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
+    # ------------------------------ Prediction ------------------------------ #
+    # Load test data
+    test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
-    # # # Build the prediction matrix
-    # X_ts = create_learning_matrices2(rating_matrix, test_user_movie_pairs)
-    # X_ts = scaler.transform(X_ts)
-    # # Predict
-    # y_pred = model.predict(X_ts)    
-    # print(y_pred)
+    # # Build the prediction matrix
+    X_ts = create_learning_matrices2(rating_matrix, test_user_movie_pairs)
+    X_ts = scaler.transform(X_ts)
 
-    # print(max(y_pred))
-    # y_pred = y_check(y_pred)
-    # print(max(y_pred))
-    # # Making the submission file
-    # fname = make_submission(y_pred, test_user_movie_pairs, 'NLP_bagging' )
-    # print('Submission file "{}" successfully written'.format(fname))
+    # Predict
+    print(X_ts.shape)
+    y_pred = np.zeros((n_estimator,X_ts.shape[0]))
+    for i in range(n_estimator):
+       y_pred[i,:] =  models[i][0].predict(models[i][1].transform(X_ts))
+    y_pred = np.mean(y_pred,axis=0)    
+    print(y_pred)
+
+    y_pred = y_check(y_pred)
+    # Making the submission file
+    fname = make_submission(y_pred, test_user_movie_pairs, 'NLP_bagging' )
+    print('Submission file "{}" successfully written'.format(fname))
