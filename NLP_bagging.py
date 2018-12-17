@@ -51,23 +51,20 @@ if __name__ == '__main__':
     with measure_time("Bagging training"):
         for i in range(n_estimator):
             #training
-            model = MLPRegressor(hidden_layer_sizes=(100,50,50),random_state = i)
+            model = MLPRegressor(hidden_layer_sizes=(100,50,50),random_state =i)
             X_ls2 = v_noise(X_ls2)
             scaler.fit(X_ls2)  
             X_ls2=scaler.transform(X_ls2)
             model.fit(X_ls2,y_ls2)
-            models.append(model)
-            X_ls2 = X_untouch
-    i=0
-    for model in models:
-        #predicting
-        y_pred[i,:] = model.predict(X_vs)
-        i += 1 
-    print(y_pred)
-    print(y_pred.shape)
-    y_pred = np.mean(y_pred,axis=0)
-    print(y_pred)
-    print(mean_squared_error(y_vs, y_pred))
+            X_t= scaler.transform(X_vs,copy=True)
+            y_pred[i,:] = model.predict(X_t)  
+            print(model.predict(X_t))          
+            X_ls2 = X_untouch.copy()
+
+    #print("ypred" + str(y_pred))
+    means = np.mean(y_pred,axis=0)
+    #print("means: "+str(means))
+    print(mean_squared_error(y_vs,means))
         
     # # # ------------------------------ Prediction ------------------------------ #
     # # # Load test data
