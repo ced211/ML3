@@ -1,79 +1,161 @@
-def create_user_data(user_features):
+import pandas as pd
+import numpy as np
+from scipy import sparse
+from scipy.sparse import find
+from toy_example import measure_time
+def create_learning_matrices2(rating_matrix,user_movie_pairs):
+    """create the learning matrice [sn_sample,10] from the rating_matrix, and the user movie pair.
+        the feature vector is composed with the total number of rank1 given by the user, total of rank2 given
+        by the user, ... the total of rank 1 received by the movie, the total of rank 2 received by the movie, ..."""
+    with measure_time('Building learning matrix'):
+        #create intermediate matrix
+        users_rank = np.zeros((rating_matrix.shape[0],5))
+        for userID in range(rating_matrix.shape[0]):
+            (dont_care1,dont_care2,user_rank) = sparse.find(rating_matrix[userID,:])
+            for rank in user_rank:
+                users_rank[userID,rank-1] += 1
+        movies_rank = np.zeros((rating_matrix.shape[1],5))
+        for movieID in range(rating_matrix.shape[1]):
+            (dont_care1,dont_care2,movie_rank) = sparse.find(rating_matrix[:,movieID].transpose())
+            for rank in movie_rank:
+                movies_rank[movieID,rank-1] += 1
+        user_features = users_rank[user_movie_pairs[:,0]]
+        movie_features = movies_rank[user_movie_pairs[:,1]]
+        X = np.concatenate((user_features,movie_features), axis=1)
+        return X
+
+
+def create_learning_matrices3(User_movie_pairs):
     """
-    Return
-	user_data: array[age,sex,work]
-	"""
-    return np.hstack((user_features[:,1].reshape((-1, 1)), user_features[:,2].reshape((-1, 1)), user_features[:,3].reshape((-1, 1))))
-def create_movie_data(movie_features):
+        Create the learning matrix `X` from the `rating_matrix`.
+
+        If `u, m = user_movie_pairs[i]`, then X[i] is the feature vector
+        corresponding to user `u` and movie `m`. The feature vector is composed
+        of `n_user_features_kept + n_movie_features_kept` features. The features
+        kept depend of the beginning of this method where removed features are specified.
+
+        In other words, the feature vector for a pair (user, movie) is the
+        concatenation of values of the corresponding user features and values
+        of the corresponding movie features.
+
+        Parameters
+        ----------
+        User_movie_pairs: array [n_predictions, 2]
+            If `u, m = user_movie_pairs[i]`, the i-th raw of the learning matrix
+            must relate to user `u` and movie `m`
+
+        Return
+        ------
+        ret: numpy array with n_predictions rows and n_features_kept columns
     """
-    Return
-	movie_data: array[unknown,Action,Adventure,Animation,Children,Comedy,Crime,Documentary,Drama,Fantasy,Film-Noir,Horror,Musical,Mystery,Romance,Sci-Fi,Thriller,War,Western]
-	"""
-    return np.hstack((movie_features[:,5+i].reshape((-1, 1)) for i in range(0,18)))
 
-def create_learning_matrices2(rating_matrix, user_movie_pairs, user_data, movie_data):
-    """
-    Create the learning matrix `X` from the `rating_matrix`.
+    X = list()
+    prefix = 'data/'
+    user = load_from_csv(os.path.join(prefix, 'data_user.csv'))
+    movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))
 
-    If `u, m = user_movie_pairs[i]`, then X[i] is the feature vector
-    corresponding to user `u` and movie `m`. The feature vector is composed
-    of `n_users + n_movies` features. The `n_users` first features is the
-    `u-th` row of the `rating_matrix`. The `n_movies` last features is the
-    `m-th` columns of the `rating_matrix`
+    # Headers of both cvs file
+    userHeader = pd.read_csv(os.path.join(prefix, 'data_user.csv'), nrows=1).columns
+    movieHeader = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), nrows=1).columns
+    u = dict()
+    m = dict()
 
-    In other words, the feature vector for a pair (user, movie) is the
-    concatenation of the rating the given user made for all the movies and
-    the rating the given movie receive from all the user.
+    # Associating header names to corresponding indices in the user and movie matrix
+    k = 0
+    for i in userHeader:
+        u[i] = k
+        k += 1
+    k = 0
+    for i in movieHeader:
+        m[i] = k
+        k += 1
 
-    Parameters
-    ----------
-    rating_matrix: sparse matrix [n_users, n_movies]
-        The rating matrix. i.e. `rating_matrix[u, m]` is the rating given
-        by the user `u` for the movie `m`. If the user did not give a rating for
-        that movie, `rating_matrix[u, m] = 0`
-    user_movie_pairs: array [n_predictions, 2]
-        If `u, m = user_movie_pairs[i]`, the i-th raw of the learning matrix
-        must relate to user `u` and movie `m`
+    # lists of features to delete represented by their indexes
+    us = list()
+    ms = list()
 
-    Return
-    ------
-    X: sparse array [n_predictions, n_users + n_movies]
-        The learning matrix in csr sparse format
-    """
-    # Feature for users
-    rating_matrix = rating_matrix.tocsr()
-    user_features = rating_matrix[user_movie_pairs[:, 0]]
-    # print(user_features)
-    
-    # Features for movies
-    rating_matrix = rating_matrix.tocsc()
-    movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
+    # Features removed in user matrix
+    us.append(u["user_id"])
 
-    X = sparse.hstack((user_features, movie_features))
-    row = X.nonzero()[0]
-    col = X.nonzero()[1]
-    X = X.tocsr()
-    nb_movie = len(movie_data)
-    for x in range(0,len(row)-1):
-        r = row[x]
-        user = user_movie_pairs[r, 0]-1
-        movie = user_movie_pairs[r, 1]-1
-        c = col[x]
-        if(c > nb_movie):
-            user2 = c - nb_movie - 2
-            age = user_data[user,0]
-            sex = user_data[user,1]
-            work = user_data[user,2]
-            age2 = user_data[user2,0]
-            sex2 = user_data[user,1]
-            work2 = user_data[user2,2]			
-            if((age2<70/100*age or age2<130/100*age) and work != work2 and sex2 != sex):
-                print(user,movie,user2)
-                X[row[x],col[x]] = 0
-        else:
-            movie2 = c-1
-            if(any([(movie_data[movie,i] ==1 and movie_data[movie2,i] == 1) for i in range(0,18) ])):
-                pass
-            else:
-                X[row[x],col[x]] = 0
+    # Features removed in movie matrix
+    ms.append(m["movie_id"])
+    ms.append(m["movie_title"])
+
+    # ms.append(m["release_date"])
+
+    ms.append(m["video_release_date"])
+    ms.append(m["IMDb_URL"])
+
+    for (x, y) in User_movie_pairs:
+
+        # Handle unknown row exception
+        if movie[y - 1][m["movie_title"]] == "unknown":
+            movie[y - 1][m["release_date"]] = 0
+
+        if isinstance(movie[y - 1][m["release_date"]], str):
+            movie[y - 1][m["release_date"]] = int(movie[y - 1][2].split("-")[-1])  # Extract year release as int
+
+        user[x - 1][u["zip_code"]] = user[x - 1][u["zip_code"]][:2]  # extract 2 first letter of zip code
+
+        # remove columns given indexes and append both results in tmp
+        tmp = np.append(np.delete(user[x - 1], us),
+                        np.delete(movie[y - 1], ms))
+
+        # Hashing of string data into int to be processed by the models
+        for i in range(len(tmp)):
+            if isinstance(tmp[i], str):
+                tmp[i] = hash(tmp[i])
+
+        X.append(tmp)
+
+    X = np.asarray(X)
+
     return X
+
+def create_movie(movie):
+    movie = movie[:,5:]
+    total = np.sum(movie,axis=0)
+    permutation = np.flip(np.argsort(total),axis=0)
+    movie = movie[:,permutation]
+    output = movie[:,0]
+    for j in range(movie.shape[0]):
+        i = 0
+        while movie[j][i] == 0:
+            i += 1
+        output[j] = i
+    return output
+
+def create_user(user):
+    #catgorie depend on occupation and gender and age
+    user = user[:,(1,2,3)]
+    categorieID = 0
+    categorie = {}
+    output = user[:,0]
+    i = 0
+    user_per_categorie = []
+    for u in user:
+        key = str(int(u[0]/10))+u[1]+u[2]
+        if key not in categorie:
+            categorie[key] = categorieID
+            output[i] = categorieID
+            user_per_categorie.append(1)            
+            categorieID += 1
+        else:
+            output[i] = categorie[key]
+            user_per_categorie[categorie[key]] += 1
+        i += 1  
+    return output
+
+def create_learning_matrices4(movie,user,rating_matrix,user_movie_pair):
+    movie = create_movie(movie)
+    user = create_user(user)
+    M = np.zeros((max(user)+1,19,5))
+    feature = np.zeros((user_movie_pair.shape[0],5))
+    for u,m in user_movie_pair:
+        if rating_matrix[u,m] != 0:
+            M[user[u-1],movie[m-1],rating_matrix[u,m]-1] += 1
+    i = 0
+    for u,m in user_movie_pair:
+        feature[i] = M[user[u-1],movie[m-1],:]
+        i += 1
+    return np.concatenate((create_learning_matrices2(rating_matrix,user_movie_pair),feature),axis=1)
